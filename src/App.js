@@ -1,18 +1,17 @@
 import React, {useState, useEffect} from 'react'
-import TodoList from './TodoList'
+import TodoList from './TodoList';
+import {Context} from "./context";
 
 const App = () => {
-
     const [todos, setTodos] = useState([]);
-
     const [inputText, setInputText] = useState('');
 
-   useEffect(()=>{
-       const raw = localStorage.getItem('todos');
-       setTodos(JSON.parse(raw))
-   },[]);
+    useEffect(() => {
+        const raw = localStorage.getItem('todos');
+        setTodos(JSON.parse(raw))
+    }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         localStorage.setItem('todos', JSON.stringify(todos))
     }, [todos]);
 
@@ -26,27 +25,47 @@ const App = () => {
                     completed: false
                 }
             ]);
-          setInputText('');
+            setInputText('');
         }
     };
 
+    const removeItem = id => {
+        setTodos(todos.filter(todo => {
+        return todo.id !== id
+        }))
+    };
+
+    const toggleItem = id => {
+        setTodos(todos.map(todo =>{
+            if(todo.id === id){
+                todo.completed = !todo.completed
+            }
+            return todo
+        }))
+    };
+
     return (
-        <div className="container">
-            <h1>Todo app</h1>
+        <Context.Provider value={{
+            removeItem,
+            toggleItem
+        }}>
+            <div className="container">
+                <h1>Todo app</h1>
 
-            <div className="input-field"
+                <div className="input-field"
 
-            >
-                <input type="text"
-                       value={inputText}
-                       onChange={(e) => setInputText(e.target.value)}
-                       onKeyPress={addTitle}
-                />
-                <label>Todo name</label>
+                >
+                    <input type="text"
+                           value={inputText}
+                           onChange={(e) => setInputText(e.target.value)}
+                           onKeyPress={addTitle}
+                    />
+                    <label>Todo name</label>
+                </div>
+
+                <TodoList todos={todos}/>
             </div>
-
-            <TodoList todos={todos}/>
-        </div>
+        </Context.Provider>
     );
 };
 
