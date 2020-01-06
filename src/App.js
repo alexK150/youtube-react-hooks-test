@@ -1,53 +1,29 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useReducer} from 'react'
 import TodoList from './TodoList';
 import {Context} from "./context";
+import {reducer} from './reducer';
 
 const App = () => {
-    const [todos, setTodos] = useState([]);
-    const [inputText, setInputText] = useState('');
+    const [state, dispatch] = useReducer(reducer, JSON.parse(localStorage.getItem('todos')));
+    const [todoTitle, setTitle] = useState('');
 
     useEffect(() => {
-        const raw = localStorage.getItem('todos');
-        setTodos(JSON.parse(raw))
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem('todos', JSON.stringify(todos))
-    }, [todos]);
+        localStorage.setItem('todos', JSON.stringify(state))
+    }, [state]);
 
     const addTitle = (e) => {
         if (e.key === 'Enter') {
-            setTodos([
-                ...todos,
-                {
-                    id: Date.now(),
-                    title: inputText,
-                    completed: false
-                }
-            ]);
-            setInputText('');
+            dispatch({
+                type: 'add',
+                payload: todoTitle
+            });
+            setTitle('');
         }
-    };
-
-    const removeItem = id => {
-        setTodos(todos.filter(todo => {
-        return todo.id !== id
-        }))
-    };
-
-    const toggleItem = id => {
-        setTodos(todos.map(todo =>{
-            if(todo.id === id){
-                todo.completed = !todo.completed
-            }
-            return todo
-        }))
     };
 
     return (
         <Context.Provider value={{
-            removeItem,
-            toggleItem
+            dispatch
         }}>
             <div className="container">
                 <h1>Todo app</h1>
@@ -56,14 +32,14 @@ const App = () => {
 
                 >
                     <input type="text"
-                           value={inputText}
-                           onChange={(e) => setInputText(e.target.value)}
+                           value={todoTitle}
+                           onChange={(e) => setTitle(e.target.value)}
                            onKeyPress={addTitle}
                     />
                     <label>Todo name</label>
                 </div>
 
-                <TodoList todos={todos}/>
+                <TodoList todos={state}/>
             </div>
         </Context.Provider>
     );
